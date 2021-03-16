@@ -17,11 +17,27 @@ exports.invokeRolesPolicies = function() {
       roles: ["admin", "user"],
       allows: [
         {
-          resources: "/api/linechats",
+          resources: "/api/linechat/login",
           permissions: "*"
         },
         {
-          resources: "/api/linechats/:linechatId",
+          resources: "/api/linechat/chatRoomList",
+          permissions: "*"
+        },
+        {
+          resources: "/api/linechat/userList",
+          permissions: "*"
+        },
+        {
+          resources: "/api/linechat/historyMessage",
+          permissions: "*"
+        },
+        {
+          resources: "api/linechat/sendMessage",
+          permissions: "*"
+        },
+        {
+          resources: "/api/linechat/streamApiToken",
           permissions: "*"
         }
       ]
@@ -35,6 +51,7 @@ exports.invokeRolesPolicies = function() {
 exports.isAllowed = function(req, res, next) {
   var roles = req.user ? req.user.roles : ["guest"];
 
+  console.log(roles);
   // Check for user roles
   acl.areAnyRolesAllowed(
     roles,

@@ -186,81 +186,101 @@ exports.delete = function (req, res) {
 
 
 exports.loginByQRCode = async function(req, res) {
+
+    let browser;
+    let page;
     
-    // Open sse connection
-    res.writeHead(200, {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-    });
+    try {
+        // Open sse connection
+        res.writeHead(200, {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+        });
 
-    // Click login to first page
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    await page.goto('https://account.line.biz/login?redirectUri=https%3A%2F%2Fchat.line.biz', { waitUntil: 'networkidle2' });
-    // await page.screenshot({ path: '0.png' });
-    const btn1 = await page.$$(".btn");
-    await btn1[0].click();
-    await page.waitForNavigation();
+        // Click login to first page
+        browser = await puppeteer.launch();
+        page = await browser.newPage();
+        await page.goto('https://account.line.biz/login?redirectUri=https%3A%2F%2Fchat.line.biz', { waitUntil: 'networkidle2' });
+        // await page.screenshot({ path: '0.png' });
+        const btn1 = await page.$$(".btn");
+        await btn1[0].click();
+        await page.waitForNavigation();
 
-    // await page.screenshot({ path: '1.png' });
+        // await page.screenshot({ path: '1.png' });
 
-    // Click login for qrcode at second page
-    const btnQR = await page.$$(".MdBtn02");
-    await btnQR[0].click();
-    await page.waitForNavigation();
-    await page.waitForTimeout(3000);
-    // await page.screenshot({ path: '2.png' });
+        // Click login for qrcode at second page
+        const btnQR = await page.$$(".MdBtn02");
+        await btnQR[0].click();
+        await page.waitForNavigation();
+        await page.waitForTimeout(600);
+        // await page.screenshot({ path: '2.png' });
 
-    // const imgSRC = await page.$$eval(".mdMN05Img01Box img[src]", imgs => imgs.map(img => img.getAttribute('src')));
-    // console.log(imgSRC);
+        // const imgSRC = await page.$$eval(".mdMN05Img01Box img[src]", imgs => imgs.map(img => img.getAttribute('src')));
+        // console.log(imgSRC);
 
-    // REMARK: .mdMN05Img01Box img = QR CODE image
-    const img = await page.$$(".mdMN05Img01Box img");
-    // await img[0].screenshot({path: '3.png'});
+        // REMARK: .mdMN05Img01Box img = QR CODE image
+        const img = await page.$$(".mdMN05Img01Box img");
+        // await img[0].screenshot({path: '3.png'});
 
-    // concat image data to base64 
-    let b64Img = await img[0].screenshot({ encoding: "base64" });
-    // concat header to base64 image for show in client
-    b64Img = `data:image/png;base64, ${b64Img}`;
+        // concat image data to base64 
+        let b64Img = await img[0].screenshot({ encoding: "base64" });
+        // concat header to base64 image for show in client
+        b64Img = `data:image/png;base64, ${b64Img}`;
+        
+        // const buffer = Buffer.from(b64string, "base64");
+        // const data = "data:;base64," + Buffer.from(body).toString('base64');
+        // const data = Buffer.from(b64string).toString('base64');
+        // console.log(b64Img);
+
+        // Send qrcode-wait event to client 
+        res.write(`event: qrcodeWait\n`);
+        res.write(`data: ${b64Img}\n\n`);
+
+        // Wait for user redirect QR CODE
+        await page.waitForNavigation();
+        await page.waitForTimeout(500);
+        // await page.screenshot({ path: '4.png' });
+        
+        // Find pincode for send to user verify
+        // .mdMN06Number = pincode
+        const pinCode = await page.$eval(".mdMN06Number", el => el.innerText);
     
-    //const buffer = Buffer.from(b64string, "base64");
-    //const data = "data:;base64," + Buffer.from(body).toString('base64');
-    // const data = Buffer.from(b64string).toString('base64');
+        // Send pincode-wait event to client
+        res.write(`event: pincodeWait\n`);
+        res.write(`data: ${pinCode}\n\n`);
 
-    // Send qrcode-wait event to client 
-    res.write(`event: qrcode-wait\n`);
-    res.write(`data: ${b64Img}\n\n`);
+        // Wait for user input pincode
+        await page.waitForNavigation();
+        await page.waitForTimeout(500);
 
-    // Wait for user redirect QR CODE
-    await page.waitForNavigation();
-    await page.waitForTimeout(3000);
-    // await page.screenshot({ path: '4.png' });
-    
-    // Find pincode for send to user verify
-    // .mdMN06Number = pincode
-    const pinCode = await page.$eval(".mdMN06Number", el => el.innerText);
- 
-    // Send pincode-wait event to client
-    res.write(`event: pincode-wait\n`);
-    res.write(`data: ${pinCode}\n\n`);
+        // await page.screenshot({ path: '5.png' });
 
-    // Wait for user input pincode
-    await page.waitForNavigation();
-    await page.waitForTimeout(3000);
+        // get all cookie
+        let currentCookies = await page._client.send('Network.getAllCookies');
+        const ses = currentCookies.cookies.filter((ck) => { return ck.name === 'XSRF-TOKEN' ||  ck.name === 'SESSION' ||  ck.name === 'ses'})
+        console.log(ses);
 
-    // await page.screenshot({ path: '5.png' });
+        res.write('event: sseToken\n');
+        res.write(`data: ${JSON.stringify(ses)}\n\n`);
 
-    // get all cookie
-    let currentCookies = await page._client.send('Network.getAllCookies');
-    
-    const Ses = currentCookies.cookies.filter((ck) => { return ck.name === 'XSRF-TOKEN' ||  ck.name === 'SESSION' ||  ck.name === 'ses'})
-    console.log(Ses);
 
-    res.write('event: login-success\n');
-    res.write('data: success\n\n');
+        res.write('event: loginSuccess\n');
+        res.write('data: success\n\n');
+        res.end();
 
-    await browser.close();   
+        await browser.close();   
+    } catch(error) {
+        await browser.close();
+        
+        console.log('error pass');
+        console.log(error);
+        res.write('event: error\n');
+        res.write(`error: ${error}\n\n`);
+        res.end();
+
+        
+    }
 }
 
 /**
