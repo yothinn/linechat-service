@@ -220,9 +220,9 @@ exports.loginByQRCode = async function(req, res) {
     // await img[0].screenshot({path: '3.png'});
 
     // concat image data to base64 
-    const b64Img = await img[0].screenshot({ encoding: "base64" });
+    let b64Img = await img[0].screenshot({ encoding: "base64" });
     // concat header to base64 image for show in client
-    const b64Img = `data:image/png;base64, ${b64Img}`;
+    b64Img = `data:image/png;base64, ${b64Img}`;
     
     //const buffer = Buffer.from(b64string, "base64");
     //const data = "data:;base64," + Buffer.from(body).toString('base64');

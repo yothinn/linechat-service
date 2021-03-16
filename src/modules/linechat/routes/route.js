@@ -6,7 +6,7 @@ var controller = require('../controllers/controller'),
 module.exports = function (app) {
 
     app.route('/api/linechat/login')// .all(policy.isAllowed)
-        .get(controller.login);
+        .get(controller.loginByQRCode);
 
     app.route('/api/linechat/chatRoomList')// .all(policy.isAllowed)
         .post(controller.getChatRoomList);
