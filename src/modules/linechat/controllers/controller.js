@@ -269,17 +269,21 @@ exports.loginByQRCode = async function(req, res) {
         res.write('data: success\n\n');
         res.end();
 
+        req.on('close', (data) => {
+            console.log('close sse');
+            console.log(data)
+            res.end();
+        })
+
         await browser.close();   
     } catch(error) {
         await browser.close();
-        
+
         console.log('error pass');
         console.log(error);
         res.write('event: error\n');
         res.write(`error: ${error}\n\n`);
         res.end();
-
-        
     }
 }
 
@@ -309,7 +313,7 @@ exports.getChatRoomList = function (req, res) {
 		}
 	};
 
-	request(config, (err, res, body) => {
+	request(config, (err, result, body) => {
 		if (!body.error) {
 			let messages = (JSON.parse(body));
             res.jsonp({
@@ -364,7 +368,7 @@ exports.getUserList = function(req, res) {
 
 	};
 
-	request(config, (err, res, body) => {
+	request(config, (err, result, body) => {
 		if (!body.error) {
 			let messages = (JSON.parse(body));
 			res.jsonp({
@@ -417,7 +421,7 @@ exports.getHistoryMessage = function(req, res) {
 
 	};
 
-	request(config, (err, res, body) => {
+	request(config, (err, result, body) => {
 		if (!body.error) {
 			let messages = (JSON.parse(body));
 			res.jsonp({
@@ -465,7 +469,7 @@ exports.sendMessage = function(req, res) {
 		}
 	};
 
-	request(config, (err, res, body) => {
+	request(config, (err, result, body) => {
 		if (!body.error) {
 			res.jsonp({
                 status: 200,
@@ -505,7 +509,7 @@ exports.getStreamApiToken = function(req, res) {
 		}
 	};
 
-	request(config, (err, res, body) => {
+	request(config, (err, result, body) => {
 		if (!body.error) {
 			let messages = (JSON.parse(body));
 			res.jsonp({
