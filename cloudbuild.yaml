@@ -1,0 +1,14 @@
+steps:
+  # build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/linechat-service', '.']
+  # push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/linechat-service']
+  # Deploy container image to Cloud Run : Test Environment
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: ['run', 'deploy', 'linechat-service', '--image', 'gcr.io/$PROJECT_ID/linechat-service', '--region', 'asia-east1','--platform', 'managed', '--allow-unauthenticated']
+  # Deploy container image to Cloud Run : Production Environment
+  # - name: 'gcr.io/cloud-builders/gcloud'
+  #   args: ['run', 'deploy', 'tvds-service-prod', '--image', 'gcr.io/$PROJECT_ID/tvds-service', '--region', 'asia-east1','--platform', 'managed', '--allow-unauthenticated']
+    
