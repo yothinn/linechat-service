@@ -33,7 +33,7 @@ exports.invokeRolesPolicies = function() {
           permissions: "*"
         },
         {
-          resources: "api/linechat/sendMessage",
+          resources: "/api/linechat/sendMessage",
           permissions: "*"
         },
         {

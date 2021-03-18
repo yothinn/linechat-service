@@ -17,7 +17,7 @@ module.exports = function (app) {
     app.route('/api/linechat/historyMessage').all(policy.isAllowed)
         .post(controller.getHistoryMessage);
 
-    app.route('api/linechat/sendMessage').all(policy.isAllowed)
+    app.route('/api/linechat/sendMessage').all(policy.isAllowed)
         .post(controller.sendMessage);
 
     app.route('/api/linechat/streamApiToken').all(policy.isAllowed)

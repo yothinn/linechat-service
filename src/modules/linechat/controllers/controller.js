@@ -212,9 +212,23 @@ exports.loginByQRCode = async function(req, res) {
         // Click login for qrcode at second page
         const btnQR = await page.$$(".MdBtn02");
         await btnQR[0].click();
-        await page.waitForNavigation();
-        await page.waitForTimeout(600);
+        // await page.waitForNavigation();
+        await page.waitForTimeout(500);
         // await page.screenshot({ path: '2.png' });
+
+        // TODO : use temporaly , ใช้ page.$$ แล้วดึงรูป qrcode ขาดด้านขวาไปหน่อยหนึ่ง หาสาเหตุอีกที
+        // let b64Img = await page.screenshot({
+        //                     type: 'png',
+        //                     clip: {
+        //                         x: 300,
+        //                         y: 150,
+        //                         width: 200,
+        //                         height: 180,
+        //                     },
+        //                     omitBackground: true,
+        //                     //path: '2.png'
+        //                     encoding: 'base64'
+        // });
 
         // const imgSRC = await page.$$eval(".mdMN05Img01Box img[src]", imgs => imgs.map(img => img.getAttribute('src')));
         // console.log(imgSRC);
@@ -231,7 +245,7 @@ exports.loginByQRCode = async function(req, res) {
         // const buffer = Buffer.from(b64string, "base64");
         // const data = "data:;base64," + Buffer.from(body).toString('base64');
         // const data = Buffer.from(b64string).toString('base64');
-        // console.log(b64Img);
+        console.log(b64Img);
 
         // Send qrcode-wait event to client 
         res.write(`event: qrcodeWait\n`);
@@ -303,7 +317,7 @@ exports.getChatRoomList = function (req, res) {
     let limit = req.body.limit || 50;
 
     let lineUrl = `${lineChatApi}?noFilter=${noFilter}&limit=${limit}`;
-    console.log(url);
+    console.log(lineUrl);
 
     const config = {
 		method: 'get',
@@ -449,7 +463,11 @@ exports.getHistoryMessage = function(req, res) {
  *  chatId:
  *  cookieToken:
  *  xsrfToken:
- *  message
+ *  message {
+ *      sendId: chatId + "_" + Date.now(),              
+ *      text: message,
+ *      type: "text"
+ *  },
  * }
  */
 exports.sendMessage = function(req, res) {
@@ -457,7 +475,10 @@ exports.sendMessage = function(req, res) {
     let chatRoomId = req.body.chatRoomId;
     let chatId = req.body.chatId;
 
-    let lineUrl = `${lineChatApi}/${chatRoomId}/messages/${chatId}/send`
+    let lineUrl = `${lineChatApi}/${chatRoomId}/messages/${chatId}/send`;
+
+
+    console.log(req.body.message);
 
     const config = {
 		method: 'post',
@@ -499,6 +520,8 @@ exports.getStreamApiToken = function(req, res) {
     let chatRoomId = req.body.chatRoomId;
 
     let lineUrl = `${lineChatApi}/${chatRoomId}/streamingApiToken`;
+
+    console.log(lineUrl);
 
     const config = {
 		method: 'post',
