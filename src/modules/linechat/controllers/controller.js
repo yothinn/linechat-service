@@ -236,7 +236,7 @@ exports.loginByQRCode = async function(req, res) {
         // REMARK: .mdMN05Img01Box img = QR CODE image
         const img = await page.$$(".mdMN05Img01Box img");
         // await img[0].screenshot({path: '3.png'});
-
+        console.log(img);
         // concat image data to base64 
         let b64Img = await img[0].screenshot({ encoding: "base64" });
         // concat header to base64 image for show in client
@@ -265,7 +265,8 @@ exports.loginByQRCode = async function(req, res) {
         res.write(`data: ${pinCode}\n\n`);
 
         // Wait for user input pincode
-        await page.waitForNavigation();
+        // Timeout 2 minute
+        await page.waitForNavigation({timeout: 120000});
         await page.waitForTimeout(500);
 
         // await page.screenshot({ path: '5.png' });
@@ -328,7 +329,9 @@ exports.getChatRoomList = function (req, res) {
 	};
 
 	request(config, (err, result, body) => {
-		if (!body.error) {
+        console.log(body);
+        console.log(err);
+		if (!err) {
 			let messages = (JSON.parse(body));
             res.jsonp({
                 status: 200,
@@ -383,7 +386,9 @@ exports.getUserList = function(req, res) {
 	};
 
 	request(config, (err, result, body) => {
-		if (!body.error) {
+        console.log(body);
+        console.log(err);
+		if (!err) {
 			let messages = (JSON.parse(body));
 			res.jsonp({
                 status: 200,
@@ -424,7 +429,7 @@ exports.getHistoryMessage = function(req, res) {
         lineUrl = `${lineUrl}?backward=${backwardToken}`;
     }
 
-    console.log(lineUrl)
+    console.log(lineUrl);
     
     const config = {
 		method: 'get',
@@ -436,7 +441,9 @@ exports.getHistoryMessage = function(req, res) {
 	};
 
 	request(config, (err, result, body) => {
-		if (!body.error) {
+        console.log(body);
+        console.log(err);
+		if (!err) {
 			let messages = (JSON.parse(body));
 			res.jsonp({
                 status: 200,
@@ -491,7 +498,9 @@ exports.sendMessage = function(req, res) {
 	};
 
 	request(config, (err, result, body) => {
-		if (!body.error) {
+        console.log(body);
+        console.log(err);
+		if (!err) {
 			res.jsonp({
                 status: 200,
             });
@@ -533,7 +542,9 @@ exports.getStreamApiToken = function(req, res) {
 	};
 
 	request(config, (err, result, body) => {
-		if (!body.error) {
+        console.log(body);
+        console.log(err);
+		if (!err) {
 			let messages = (JSON.parse(body));
 			res.jsonp({
                 status: 200,
@@ -548,3 +559,90 @@ exports.getStreamApiToken = function(req, res) {
 		}
 	});
 }
+
+/**
+ * 
+ * @param {*} req 
+ * @param {*} res
+ * Body {
+ *  chatRoomId:
+ *  cookieToken:
+ *  xsrfToken:
+ *  nickname
+ * }
+ */
+exports.setNickname = function(req, res) {
+    console.log('nickname');
+    let chatRoomId = req.body.chatRoomId;
+    let chatId = req.body.chatId;
+
+    let lineUrl = `${lineChatApi}/${chatRoomId}/users/${chatId}/nickname`;
+
+    console.log(req.body.message);
+
+    const config = {
+		method: 'put',
+		uri: lineUrl,
+		json: req.body.message,
+		headers: {
+			Cookie: 'ses=' + req.body.cookieToken + ';' + 'XSRF-TOKEN=' + req.body.xsrfToken,
+			'X-XSRF-TOKEN': req.body.xsrfToken
+		}
+	};
+
+	request(config, (err, result, body) => {
+        console.log(body);
+        console.log(err);
+		if (!err) {
+			res.jsonp({
+                status: 200,
+            });
+
+		} else {
+			res.status(400).send({
+                status: 400,
+                message: errorHandler.getErrorMessage(err)
+            });
+
+		}
+	}); 
+}
+
+
+exports.getProfile = function(req, res) {
+    let chatRoomId = req.body.chatRoomId;
+    let chatId = req.body.chatId;
+
+    let lineUrl = `${lineChatApi}/${chatRoomId}/users?userIds=${chatId}`;
+
+    const config = {
+		method: 'get',
+		uri: lineUrl,
+		headers: {
+			Cookie: 'ses=' + req.body.cookieToken + ';' + 'XSRF-TOKEN=' + req.body.xsrfToken,
+			'X-XSRF-TOKEN': req.body.xsrfToken
+		}
+	};
+
+	request(config, (err, result, body) => {
+        console.log(body);
+        console.log(err);
+        let d = (JSON.parse(body));
+
+		if (!err) {
+			res.jsonp({
+                status: 200,
+                data: d.list ? d.list[0] : {}
+            });
+
+		} else {
+			res.status(400).send({
+                status: 400,
+                message: errorHandler.getErrorMessage(err)
+            });
+
+		}
+	}); 
+}
+
+

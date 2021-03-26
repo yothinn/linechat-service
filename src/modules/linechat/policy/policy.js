@@ -39,7 +39,15 @@ exports.invokeRolesPolicies = function() {
         {
           resources: "/api/linechat/streamApiToken",
           permissions: "*"
-        }
+        },
+        {
+          resources: "/api/linechat/nickname",
+          permissions: "*"
+        },
+        {
+          resources: "/api/linechat/profile",
+          permissions: "*"
+        },
       ]
     }
   ]);

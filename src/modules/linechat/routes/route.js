@@ -23,6 +23,12 @@ module.exports = function (app) {
     app.route('/api/linechat/streamApiToken').all(policy.isAllowed)
         .post(controller.getStreamApiToken);
 
+    app.route('/api/linechat/nickname').all(policy.isAllowed)
+        .post(controller.setNickname);
+    
+    app.route('/api/linechat/profile').all(policy.isAllowed)
+        .post(controller.getProfile);
+
     // app.route(urlWithParam).all(policy.isAllowed)
     //     .get(controller.read)
     //     .put(controller.update)
