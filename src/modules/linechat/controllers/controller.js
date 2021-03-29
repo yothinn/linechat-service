@@ -199,7 +199,15 @@ exports.loginByQRCode = async function(req, res) {
         });
 
         // Click login to first page
-        browser = await puppeteer.launch();
+        // browser = await puppeteer.launch();
+        browser = await puppeteer.launch({ 
+            headless: true,
+            executablePath: '/usr/bin/chromium-browser',
+            args: [
+            "--no-sandbox",
+            "--disable-gpu",
+            ]
+        });
         page = await browser.newPage();
         await page.goto('https://account.line.biz/login?redirectUri=https%3A%2F%2Fchat.line.biz', { waitUntil: 'networkidle2' });
         // await page.screenshot({ path: '0.png' });
@@ -236,7 +244,7 @@ exports.loginByQRCode = async function(req, res) {
         // REMARK: .mdMN05Img01Box img = QR CODE image
         const img = await page.$$(".mdMN05Img01Box img");
         // await img[0].screenshot({path: '3.png'});
-        console.log(img);
+        // console.log(img);
         // concat image data to base64 
         let b64Img = await img[0].screenshot({ encoding: "base64" });
         // concat header to base64 image for show in client
@@ -245,7 +253,7 @@ exports.loginByQRCode = async function(req, res) {
         // const buffer = Buffer.from(b64string, "base64");
         // const data = "data:;base64," + Buffer.from(body).toString('base64');
         // const data = Buffer.from(b64string).toString('base64');
-        console.log(b64Img);
+        // console.log(b64Img);
 
         // Send qrcode-wait event to client 
         res.write(`event: qrcodeWait\n`);
@@ -274,7 +282,7 @@ exports.loginByQRCode = async function(req, res) {
         // get all cookie
         let currentCookies = await page._client.send('Network.getAllCookies');
         const ses = currentCookies.cookies.filter((ck) => { return ck.name === 'XSRF-TOKEN' ||  ck.name === 'SESSION' ||  ck.name === 'ses'})
-        console.log(ses);
+        // console.log(ses);
 
         res.write('event: sseToken\n');
         res.write(`data: ${JSON.stringify(ses)}\n\n`);
@@ -285,8 +293,8 @@ exports.loginByQRCode = async function(req, res) {
         res.end();
 
         req.on('close', (data) => {
-            console.log('close sse');
-            console.log(data)
+            // console.log('close sse');
+            // console.log(data)
             res.end();
         })
 
@@ -294,7 +302,7 @@ exports.loginByQRCode = async function(req, res) {
     } catch(error) {
         await browser.close();
 
-        console.log('error pass');
+        // console.log('error pass');
         console.log(error);
         res.write('event: error\n');
         res.write(`error: ${error}\n\n`);
@@ -318,7 +326,7 @@ exports.getChatRoomList = function (req, res) {
     let limit = req.body.limit || 50;
 
     let lineUrl = `${lineChatApi}?noFilter=${noFilter}&limit=${limit}`;
-    console.log(lineUrl);
+    // console.log(lineUrl);
 
     const config = {
 		method: 'get',
@@ -329,8 +337,8 @@ exports.getChatRoomList = function (req, res) {
 	};
 
 	request(config, (err, result, body) => {
-        console.log(body);
-        console.log(err);
+        // console.log(body);
+       //  console.log(err);
 		if (!err) {
 			let messages = (JSON.parse(body));
             res.jsonp({
@@ -374,7 +382,7 @@ exports.getUserList = function(req, res) {
     if (nextToken) {
         lineUrl = `${lineUrl}&next=${nextToken}`;
     }
-    console.log(lineUrl);
+    // console.log(lineUrl);
 
     const config = {
 		method: 'get',
@@ -386,8 +394,8 @@ exports.getUserList = function(req, res) {
 	};
 
 	request(config, (err, result, body) => {
-        console.log(body);
-        console.log(err);
+        // console.log(body);
+        // console.log(err);
 		if (!err) {
 			let messages = (JSON.parse(body));
 			res.jsonp({
@@ -429,7 +437,7 @@ exports.getHistoryMessage = function(req, res) {
         lineUrl = `${lineUrl}?backward=${backwardToken}`;
     }
 
-    console.log(lineUrl);
+    // console.log(lineUrl);
     
     const config = {
 		method: 'get',
@@ -441,8 +449,8 @@ exports.getHistoryMessage = function(req, res) {
 	};
 
 	request(config, (err, result, body) => {
-        console.log(body);
-        console.log(err);
+        // console.log(body);
+        // console.log(err);
 		if (!err) {
 			let messages = (JSON.parse(body));
 			res.jsonp({
@@ -485,7 +493,7 @@ exports.sendMessage = function(req, res) {
     let lineUrl = `${lineChatApi}/${chatRoomId}/messages/${chatId}/send`;
 
 
-    console.log(req.body.message);
+    // console.log(req.body.message);
 
     const config = {
 		method: 'post',
@@ -498,8 +506,8 @@ exports.sendMessage = function(req, res) {
 	};
 
 	request(config, (err, result, body) => {
-        console.log(body);
-        console.log(err);
+        // console.log(body);
+        // console.log(err);
 		if (!err) {
 			res.jsonp({
                 status: 200,
@@ -530,7 +538,7 @@ exports.getStreamApiToken = function(req, res) {
 
     let lineUrl = `${lineChatApi}/${chatRoomId}/streamingApiToken`;
 
-    console.log(lineUrl);
+    // console.log(lineUrl);
 
     const config = {
 		method: 'post',
@@ -542,8 +550,8 @@ exports.getStreamApiToken = function(req, res) {
 	};
 
 	request(config, (err, result, body) => {
-        console.log(body);
-        console.log(err);
+        // console.log(body);
+        // console.log(err);
 		if (!err) {
 			let messages = (JSON.parse(body));
 			res.jsonp({
@@ -572,13 +580,13 @@ exports.getStreamApiToken = function(req, res) {
  * }
  */
 exports.setNickname = function(req, res) {
-    console.log('nickname');
+    // console.log('nickname');
     let chatRoomId = req.body.chatRoomId;
     let chatId = req.body.chatId;
 
     let lineUrl = `${lineChatApi}/${chatRoomId}/users/${chatId}/nickname`;
 
-    console.log(req.body.message);
+    // console.log(req.body.message);
 
     const config = {
 		method: 'put',
@@ -591,8 +599,8 @@ exports.setNickname = function(req, res) {
 	};
 
 	request(config, (err, result, body) => {
-        console.log(body);
-        console.log(err);
+        // console.log(body);
+        // console.log(err);
 		if (!err) {
 			res.jsonp({
                 status: 200,
@@ -625,8 +633,8 @@ exports.getProfile = function(req, res) {
 	};
 
 	request(config, (err, result, body) => {
-        console.log(body);
-        console.log(err);
+        // console.log(body);
+        // console.log(err);
         let d = (JSON.parse(body));
 
 		if (!err) {

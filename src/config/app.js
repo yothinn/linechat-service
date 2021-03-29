@@ -1,8 +1,8 @@
 'use strict'
 
 const app = require('./express');
-const mongoose = require('./mongoose');
+// const mongoose = require('./mongoose');
 
-mongoose.connection();
+// mongoose.connection();
 
 module.exports = app;
